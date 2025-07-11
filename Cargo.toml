@@ -1,0 +1,16 @@
+[package]
+name = "gas-predictor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+burn = "0.15"
+burn-ndarray = "0.15"
+
+[[bin]]
+name = "train"
+path = "src/main.rs"
+
+[[bin]]
+name = "infer"
+path = "src/inference.rs"
