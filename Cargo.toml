@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-burn = "0.15"
-burn-ndarray = "0.15"
+burn = "0.17"
+burn-ndarray = "0.17"
 
 [[bin]]
 name = "train"

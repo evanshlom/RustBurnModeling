@@ -17,6 +17,8 @@ Gas Price Prediction Model: predicting Ethereum gas price for the next block on 
 
 ## Running Training
 
+The first time you run training it can take 30-120 seconds, and inference probably 10 seconds
+
 ```bash
 cargo run --bin train --release
 ```
@@ -34,6 +36,13 @@ cargo run --bin infer --release
 ```
 
 This will load the trained model and predict gas price for example inputs.
+
+## Reset Cargo (if needed)
+
+```bash
+cargo clean
+```
+
 
 ## Model Features
 - PrevBlockAvg: Previous block average gas price (f32)
