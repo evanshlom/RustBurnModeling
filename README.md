@@ -1,8 +1,6 @@
 # RustBurnModeling
 Rust ML Train and Inference with Burn neural network for easy exercise
 
-
-
 Gas Price Prediction Model: predicting Ethereum gas price for the next block on Eth blockchain.
 
 ## Project Structure
@@ -11,13 +9,12 @@ Gas Price Prediction Model: predicting Ethereum gas price for the next block on 
 ├── Cargo.toml
 ├── README.md
 └── src/
+    ├── lib.rs
     ├── main.rs
     └── inference.rs
 ```
 
 ## Running Training
-
-The first time you run training it can take 30-120 seconds, and inference probably 10 seconds
 
 ```bash
 cargo run --bin train --release
@@ -37,12 +34,7 @@ cargo run --bin infer --release
 
 This will load the trained model and predict gas price for example inputs.
 
-## Reset Cargo (if needed)
-
-```bash
-cargo clean
-```
-
+**Note**: If you encounter build errors, run `cargo clean` first to reset the build cache.
 
 ## Model Features
 - PrevBlockAvg: Previous block average gas price (f32)
@@ -50,5 +42,4 @@ cargo clean
 - PoolHighBids: Percentage of high bids in pool (f32, 0.0-1.0)
 
 ## Dependencies
-- burn = "0.15"
-- burn-ndarray = "0.15"
+- burn = "0.17" (with ndarray and autodiff features)
