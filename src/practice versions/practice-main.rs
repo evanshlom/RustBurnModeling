@@ -10,49 +10,9 @@ use burn::backend::{Autodiff, NdArray};
 // Import loss function and optimizer components
 use burn::nn::loss::{MseLoss, Reduction};
 use burn::optim::{AdamConfig, GradientsParams, Optimizer};
-
-// #[derive(...)] is a macro - it auto-generates code for us
-// Module: makes this struct work as a neural network module
-// Debug: lets us print the struct for debugging
-#[derive(Module, Debug)]
-// 'pub' means public - other code can use this
-// 'struct' defines a data structure (like a class in other languages)
-// <B: Backend> means this is generic - works with any backend type B
-pub struct GasModel<B: Backend> {
-    // These are the layers of our neural network
-    // nn::Linear is a fully connected layer (y = Wx + b)
-    fc1: nn::Linear<B>,  // First layer: 3 inputs → 16 outputs
-    fc2: nn::Linear<B>,  // Hidden layer: 16 → 8
-    fc3: nn::Linear<B>,  // Output layer: 8 → 1 (final prediction)
-}
-
-// 'impl' block adds methods to our struct
-impl<B: Backend> GasModel<B> {
-    // 'pub fn' defines a public function
-    // 'new' is Rust convention for constructors
-    // '&' means we're borrowing a reference (not taking ownership)
-    // '->' specifies return type
-    pub fn new(device: &B::Device) -> Self {
-        // 'Self' refers to GasModel<B>
-        Self {
-            // LinearConfig::new(input_size, output_size) sets up the layer
-            // .init(device) actually creates it on the specified device
-            fc1: nn::LinearConfig::new(3, 16).init(device),
-            fc2: nn::LinearConfig::new(16, 8).init(device),
-            fc3: nn::LinearConfig::new(8, 1).init(device),
-        }
-    }
-
-    // Forward pass - how data flows through the network
-    // &self means this method borrows the struct (doesn't modify it)
-    // Tensor<B, 2> is a 2D tensor (matrix) on backend B
-    pub fn forward(&self, x: Tensor<B, 2>) -> Tensor<B, 2> {
-        // Chain operations: linear layer → ReLU activation → next layer
-        let x = self.fc1.forward(x).relu();  // ReLU: max(0, x)
-        let x = self.fc2.forward(x).relu();
-        self.fc3.forward(x)  // No activation on output layer
-    }
-}
+use burn::record::{BinFileRecorder, FullPrecisionSettings};
+// Import our model from lib.rs - gas_predictor is the package name from Cargo.toml
+use gas_predictor::GasModel;
 
 // Function to generate synthetic training data
 // No 'pub' means it's private to this file
@@ -99,18 +59,18 @@ fn generate_data<B: Backend>(device: &B::Device) -> (Tensor<B, 2>, Tensor<B, 2>)
 
 // Main function - program entry point
 fn main() {
-    // Type alias for convenience
-    type B = NdArray;
+    // Type alias for convenience - Autodiff wraps NdArray to enable backprop
+    type MyBackend = Autodiff<NdArray>;
     // Default device is CPU
-    let device = NdArrayDevice::default();
+    let device = Default::default();
     
     // Create model - 'mut' because we'll update weights
-    let mut model = GasModel::<B>::new(&device);
+    let mut model = GasModel::<MyBackend>::new(&device);
     // Generate training data
-    let (x_train, y_train) = generate_data::<B>(&device);
+    let (x_train, y_train) = generate_data::<MyBackend>(&device);
     
     // Create Adam optimizer (adaptive learning rate algorithm)
-    let mut optim = nn::AdamConfig::new().init();
+    let mut optim = AdamConfig::new().init();
     
     // Training loop - 500 iterations
     for epoch in 0..500 {
@@ -118,12 +78,12 @@ fn main() {
         // .clone() makes a copy (required by Burn's design)
         let pred = model.forward(x_train.clone());
         // Calculate Mean Squared Error loss
-        let loss = nn::loss::MseLoss::new().forward(pred.clone(), y_train.clone(), nn::loss::Reduction::Mean);
+        let loss = MseLoss::new().forward(pred.clone(), y_train.clone(), Reduction::Mean);
         
         // Backward pass - calculate gradients
         let grads = loss.backward();
         // Extract gradients for model parameters
-        let grads = GradientParams::from_grads(grads, &model);
+        let grads = GradientsParams::from_grads(grads, &model);
         // Update model weights (0.01 is learning rate)
         model = optim.step(0.01, model, grads);
         

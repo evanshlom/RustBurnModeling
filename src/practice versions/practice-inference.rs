@@ -1,26 +1,14 @@
 use burn::prelude::*;
-use burn_ndarray::{NdArray, NdArrayDevice};
-
-// Same model definition - must be duplicated because Rust doesn't share
-// code between binaries without making a library crate
-#[derive(Module, Debug)]
-pub struct GasModel<B: Backend> {
-    fc1: nn::Linear<B>,
-    fc2: nn::Linear<B>,
-    fc3: nn::Linear<B>,
-}
-
-impl<B: Backend> GasModel<B> {
-    pub fn forward(&self, x: Tensor<B, 2>) -> Tensor<B, 2> {
-        let x = self.fc1.forward(x).relu();
-        let x = self.fc2.forward(x).relu();
-        self.fc3.forward(x)
-    }
-}
+use burn::backend::NdArray;
+// Need Recorder trait to use the .load() method
+use burn::record::{BinFileRecorder, FullPrecisionSettings, Recorder};
+// Import model from our library - no duplication needed!
+use gas_predictor::GasModel;
 
 fn main() {
+    // For inference, we don't need Autodiff - just NdArray
     type B = NdArray;
-    let device = NdArrayDevice::default();
+    let device = Default::default();
     
     // Load the saved model from disk
     // :: is used to call associated function (like static method)
