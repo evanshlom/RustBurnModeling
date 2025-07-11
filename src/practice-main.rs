@@ -4,8 +4,12 @@
 use burn::prelude::*;
 // We need Backend trait to make our model work on different hardware (CPU/GPU)
 use burn::tensor::backend::Backend;
+// Autodiff wraps NdArray to enable automatic differentiation (backprop)
 // NdArray is the CPU backend - "Nd" means N-dimensional, like numpy arrays
-use burn_ndarray::{NdArray, NdArrayDevice};
+use burn::backend::{Autodiff, NdArray};
+// Import loss function and optimizer components
+use burn::nn::loss::{MseLoss, Reduction};
+use burn::optim::{AdamConfig, GradientsParams, Optimizer};
 
 // #[derive(...)] is a macro - it auto-generates code for us
 // Module: makes this struct work as a neural network module
